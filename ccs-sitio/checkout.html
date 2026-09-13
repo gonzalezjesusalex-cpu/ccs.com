@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Checkout - Finalizar Compra | CCS</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="shared/styles.css" rel="stylesheet">
+  <!-- SDK de PayPal en modo Sandbox de prueba -->
+  <script src="https://www.paypal.com/sdk/js?client-id=test&currency=MXN"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="catalogo.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-lg transition-colors">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Volver al catálogo</span>
+      </a>
+      <span class="text-sm font-medium text-gray-500 flex items-center gap-1">
+        <span class="material-symbols-outlined text-emerald-600 text-sm">lock</span>
+        Pago Protegido
+      </span>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-8">Finalizar Pedido</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Columna Izquierda: Datos del Comprador y Botón de Pago (7 columnas) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+    <!-- Formulario y Método de Entrega -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">local_shipping</span>
+            Método de Entrega
+          </h2>
+
+          <!-- Selector de Método: Envío vs Recoger -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <label id="opt-envio" class="flex items-center gap-3 p-3.5 border-2 border-blue-600 bg-blue-50/50 rounded-xl cursor-pointer transition-all">
+              <input type="radio" name="delivery-method" value="envio" checked class="text-blue-600 focus:ring-blue-500">
+              <div>
+                <span class="block text-sm font-bold text-gray-900">Envío a domicilio</span>
+                <span class="block text-xs text-gray-500">Recibe en tu dirección</span>
+              </div>
+            </label>
+
+            <label id="opt-tienda" class="flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50">
+              <input type="radio" name="delivery-method" value="tienda" class="text-blue-600 focus:ring-blue-500">
+              <div>
+                <span class="block text-sm font-bold text-gray-900">Recoger en tienda</span>
+                <span class="block text-xs text-gray-500">Solo nombre y teléfono</span>
+              </div>
+            </label>
+          </div>
+
+          <form id="checkout-form" class="space-y-4">
+            <!-- Datos Personales (Siempre visibles) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre Completo *</label>
+                <input type="text" id="cust-name" required placeholder="Ej. Juan Pérez" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Teléfono / WhatsApp *</label>
+                <input type="tel" id="cust-phone" required placeholder="Ej. 951 123 4567" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Bloque Exclusivo: Envío a Domicilio -->
+            <div id="shipping-container" class="space-y-4 pt-2 border-t border-gray-100">
+              <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Dirección de Entrega</h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Calle y Número *</label>
+                  <input type="text" id="cust-address" required placeholder="Calle Hidalgo #123" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Código Postal *</label>
+                  <input type="text" id="cust-zip" required placeholder="68000" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Colonia / Municipio *</label>
+                  <input type="text" id="cust-city" required placeholder="Centro, Oaxaca" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Referencias de Entrega</label>
+                  <input type="text" id="cust-ref" placeholder="Color de fachada, entre calles..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+              </div>
+            </div>
+
+            <!-- Aviso informativo cuando elige recoger en tienda -->
+            <div id="pickup-info" class="hidden p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-600" style="font-size: 20px;">storefront</span>
+              <span>Pasa a recoger tu pedido en mostrador cuando te confirmemos vía WhatsApp.</span>
+            </div>
+          </form>
+        </div>
+
+    <!-- Módulo de Métodos de Pago -->
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h2 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">payments</span>
+            Selecciona tu Método de Pago
+          </h2>
+          <p class="text-xs text-gray-500 mb-4">Elige cómo deseas liquidar tu pedido.</p>
+
+          <!-- Opciones de pago tipo radio -->
+          <div class="space-y-2.5 mb-6" id="payment-options-list">
+            
+            <!-- Opción 1: PayPal / Tarjeta -->
+            <label class="payment-card flex items-center justify-between p-3.5 border-2 border-blue-600 bg-blue-50/40 rounded-xl cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="paypal" checked class="text-blue-600 focus:ring-blue-500">
+                <div>
+                  <span class="block text-sm font-bold text-gray-900">PayPal / Tarjeta de Débito o Crédito</span>
+                  <span class="block text-xs text-gray-500">Acreditación inmediata en línea</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-blue-600">credit_card</span>
+            </label>
+
+            <!-- Opción 2: Transferencia SPEI -->
+            <label class="payment-card flex items-center justify-between p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="spei" class="text-blue-600 focus:ring-blue-500">
+                <div>
+                  <span class="block text-sm font-bold text-gray-900">Transferencia Electrónica (SPEI)</span>
+                  <span class="block text-xs text-gray-500">Sin comisiones, desde cualquier banco</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-gray-500">account_balance</span>
+            </label>
+
+            <!-- Opción 3: Mercado Pago -->
+            <label class="payment-card flex items-center justify-between p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="mercadopago" class="text-blue-600 focus:ring-blue-500">
+                <div>
+                  <span class="block text-sm font-bold text-gray-900">Mercado Pago</span>
+                  <span class="block text-xs text-gray-500">Dinero en cuenta o tarjetas asociadas</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-sky-500">wallet</span>
+            </label>
+
+            <!-- Opción 4: Depósito OXXO -->
+            <label class="payment-card flex items-center justify-between p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="oxxo" class="text-blue-600 focus:ring-blue-500">
+                <div>
+                  <span class="block text-sm font-bold text-gray-900">Depósito en efectivo en OXXO</span>
+                  <span class="block text-xs text-gray-500">Paga con número de referencia o tarjeta</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-amber-600">store</span>
+            </label>
+
+            <!-- Opción 5: Efectivo en tienda -->
+            <label id="opt-cash-store" class="payment-card flex items-center justify-between p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment-method" value="efectivo" class="text-blue-600 focus:ring-blue-500">
+                <div>
+                  <span class="block text-sm font-bold text-gray-900">Efectivo al recoger en tienda</span>
+                  <span class="block text-xs text-gray-500">Paga directamente en mostrador</span>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-emerald-600">point_of_sale</span>
+            </label>
+
+          </div>
+
+          <!-- Contenedores de Información Dinámicos -->
+
+          <!-- Panel PayPal -->
+          <div id="panel-paypal" class="payment-panel">
+            <div id="paypal-button-container" class="min-h-[120px]"></div>
+          </div>
+
+          <!-- Panel SPEI -->
+          <div id="panel-spei" class="payment-panel hidden space-y-4">
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm space-y-2">
+              <p class="font-bold text-gray-800">Datos para transferencia:</p>
+              <div class="flex justify-between border-b border-gray-200 pb-1">
+                <span class="text-gray-500">Banco:</span>
+                <span class="font-medium">BBVA México</span>
+              </div>
+              <div class="flex justify-between border-b border-gray-200 pb-1">
+                <span class="text-gray-500">Beneficiario:</span>
+                <span class="font-medium">Cleaner Computer Shop</span>
+              </div>
+              <div class="flex justify-between border-b border-gray-200 pb-1">
+                <span class="text-gray-500">CLABE:</span>
+                <span class="font-mono font-bold text-blue-600">012 180 0000000000 0</span>
+              </div>
+            </div>
+            <button type="button" id="btn-confirm-spei" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-md transition-all">
+              <span class="material-symbols-outlined">send</span>
+              <span>Confirmar y Enviar Comprobante por WhatsApp</span>
+            </button>
+          </div>
+
+          <!-- Panel Mercado Pago -->
+          <div id="panel-mercadopago" class="payment-panel hidden space-y-4">
+            <div class="p-4 bg-sky-50 rounded-xl border border-sky-200 text-sm text-sky-900">
+              <p class="font-bold">Pago rápido con Mercado Pago</p>
+              <p class="text-xs text-sky-700 mt-1">Generaremos tu enlace directo para pagar con dinero en cuenta, transferencias STP o tarjetas.</p>
+            </div>
+            <button type="button" id="btn-confirm-mp" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-md transition-all">
+              <span class="material-symbols-outlined">open_in_new</span>
+              <span>Pagar con Mercado Pago</span>
+            </button>
+          </div>
+
+          <!-- Panel OXXO -->
+          <div id="panel-oxxo" class="payment-panel hidden space-y-4">
+            <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm space-y-2 text-amber-950">
+              <p class="font-bold">Instrucciones para depósito en OXXO:</p>
+              <div class="flex justify-between border-b border-amber-200 pb-1">
+                <span class="text-amber-700">Tarjeta / Cuenta:</span>
+                <span class="font-mono font-bold">4152 •••• •••• 1234</span>
+              </div>
+              <p class="text-xs text-amber-800">Indica al cajero que realizarás un depósito a tarjeta de débito. Guarda tu ticket físico.</p>
+            </div>
+            <button type="button" id="btn-confirm-oxxo" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-md transition-all">
+              <span class="material-symbols-outlined">send</span>
+              <span>Generar Pedido y Enviar Ticket por WhatsApp</span>
+            </button>
+          </div>
+
+          <!-- Panel Efectivo en Tienda -->
+          <div id="panel-efectivo" class="payment-panel hidden space-y-4">
+            <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-sm text-emerald-900">
+              <p class="font-bold">Pago en mostrador</p>
+              <p class="text-xs text-emerald-700 mt-1">Apartamos tu pedido. Podrás pagar en efectivo o con tarjeta física al recogerlo en tienda.</p>
+            </div>
+            <button type="button" id="btn-confirm-efectivo" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-md transition-all">
+              <span class="material-symbols-outlined">check_circle</span>
+              <span>Confirmar Pedido para Pago en Tienda</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Columna Derecha: Resumen del Pedido (5 columnas) -->
+      <div class="lg:col-span-5">
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm sticky top-24">
+          <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">receipt_long</span>
+            Resumen de la Orden
+          </h2>
+
+          <!-- Lista de ítems desde localStorage -->
+          <div id="checkout-items" class="divide-y divide-gray-100 max-h-72 overflow-y-auto mb-4 pr-1 space-y-2"></div>
+
+          <!-- Desglose de Costos -->
+          <div class="border-t border-gray-200 pt-4 space-y-2 text-sm">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span id="summary-subtotal" class="font-medium text-gray-800">$0.00 MXN</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Entrega / Envío</span>
+              <span class="text-emerald-600 font-semibold">Gratis</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold text-gray-900 border-t border-gray-100 pt-2">
+              <span>Total a Pagar</span>
+              <span id="summary-total" class="text-blue-600">$0.00 MXN</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // 1. Obtener datos guardados del carrito
+    const cart = JSON.parse(localStorage.getItem('ccs_cart')) || [];
+    const itemsContainer = document.getElementById('checkout-items');
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const totalEl = document.getElementById('summary-total');
+
+    // Si no hay productos, regresa al catálogo
+    if (cart.length === 0) {
+      alert('Tu carrito está vacío. Regresando a la tienda...');
+      window.location.href = 'catalogo.html';
+    }
+
+    // 2. Renderizar Resumen en pantalla
+    let totalAmount = 0;
+    cart.forEach(item => {
+      const subtotal = item.precio * item.qty;
+      totalAmount += subtotal;
+
+      const row = document.createElement('div');
+      row.className = 'pt-2 flex justify-between items-center text-sm';
+      row.innerHTML = `
+        <div class="pr-2">
+          <p class="font-medium text-gray-800 line-clamp-1">${item.nombre}</p>
+          <p class="text-xs text-gray-500">Cant: ${item.qty} × $${item.precio.toFixed(2)}</p>
+        </div>
+        <span class="font-bold text-gray-900 whitespace-nowrap">$${subtotal.toFixed(2)}</span>
+      `;
+      itemsContainer.appendChild(row);
+    });
+
+    subtotalEl.textContent = `$${totalAmount.toFixed(2)} MXN`;
+    totalEl.textContent = `$${totalAmount.toFixed(2)} MXN`;
+
+    // 3. Pasarela de Pago
+    paypal.Buttons({
+      onInit: function(data, actions) {
+        actions.disable();
+        const form = document.getElementById('checkout-form');
+        form.addEventListener('input', () => {
+          if (form.checkValidity()) {
+            actions.enable();
+          } else {
+            actions.disable();
+          }
+        });
+      },
+      onClick: function() {
+        const form = document.getElementById('checkout-form');
+        if (!form.checkValidity()) {
+          alert('Por favor completa todos los campos requeridos con asterisco (*) antes de pagar.');
+        }
+      },
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              value: totalAmount.toFixed(2),
+              currency_code: 'MXN'
+            },
+            description: 'Pedido CCS'
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          alert('¡Pago completado con éxito! Muchas gracias, ' + details.payer.name.given_name + '.');
+          
+          // Vaciar el carrito tras la compra exitosa
+          localStorage.removeItem('ccs_cart');
+          window.location.href = 'catalogo.html';
+        });
+      },
+      onError: function(err) {
+        console.error('Error al procesar el pago:', err);
+        alert('Ocurrió un error al procesar la transacción.');
+      }
+    }).render('#paypal-button-container');
+
+    // Alternancia entre Envío a Domicilio y Recoger en Tienda
+    const deliveryRadios = document.querySelectorAll('input[name="delivery-method"]');
+    const shippingContainer = document.getElementById('shipping-container');
+    const pickupInfo = document.getElementById('pickup-info');
+    const optEnvio = document.getElementById('opt-envio');
+    const optTienda = document.getElementById('opt-tienda');
+
+    const addressInputs = [
+      document.getElementById('cust-address'),
+      document.getElementById('cust-zip'),
+      document.getElementById('cust-city')
+    ];
+
+    deliveryRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (e.target.value === 'tienda') {
+          // Ocultar dirección
+          shippingContainer.classList.add('hidden');
+          pickupInfo.classList.remove('hidden');
+
+          // Quitar la obligatoriedad de los campos de dirección
+          addressInputs.forEach(input => {
+            input.removeAttribute('required');
+            input.value = '';
+          });
+
+          // Estilos visuales de selección
+          optTienda.className = "flex items-center gap-3 p-3.5 border-2 border-blue-600 bg-blue-50/50 rounded-xl cursor-pointer transition-all";
+          optEnvio.className = "flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50";
+        } else {
+          // Mostrar dirección
+          shippingContainer.classList.remove('hidden');
+          pickupInfo.classList.add('hidden');
+
+          // Volver a exigir los campos de dirección
+          addressInputs.forEach(input => input.setAttribute('required', ''));
+
+          // Estilos visuales de selección
+          optEnvio.className = "flex items-center gap-3 p-3.5 border-2 border-blue-600 bg-blue-50/50 rounded-xl cursor-pointer transition-all";
+          optTienda.className = "flex items-center gap-3 p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50";
+        }
+      });
+    });
+
+    // Manejo dinámico de Métodos de Pago
+    const paymentCards = document.querySelectorAll('.payment-card');
+    const paymentRadios = document.querySelectorAll('input[name="payment-method"]');
+    const paymentPanels = {
+      paypal: document.getElementById('panel-paypal'),
+      spei: document.getElementById('panel-spei'),
+      mercadopago: document.getElementById('panel-mercadopago'),
+      oxxo: document.getElementById('panel-oxxo'),
+      efectivo: document.getElementById('panel-efectivo')
+    };
+
+    function switchPaymentMethod(method) {
+      // Ocultar todos los paneles y quitar estilos activos
+      Object.values(paymentPanels).forEach(panel => panel.classList.add('hidden'));
+      paymentCards.forEach(card => {
+        card.className = "payment-card flex items-center justify-between p-3.5 border border-gray-200 rounded-xl cursor-pointer transition-all hover:bg-gray-50";
+      });
+
+      // Mostrar panel seleccionado
+      if (paymentPanels[method]) {
+        paymentPanels[method].classList.remove('hidden');
+      }
+
+      // Resaltar tarjeta seleccionada
+      const activeRadio = document.querySelector(`input[name="payment-method"][value="${method}"]`);
+      if (activeRadio) {
+        activeRadio.checked = true;
+        const activeCard = activeRadio.closest('.payment-card');
+        if (activeCard) {
+          activeCard.className = "payment-card flex items-center justify-between p-3.5 border-2 border-blue-600 bg-blue-50/40 rounded-xl cursor-pointer transition-all";
+        }
+      }
+    }
+
+    paymentRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => switchPaymentMethod(e.target.value));
+    });
+
+    // Helper: Validar datos y generar mensaje de WhatsApp
+    function procesarPedidoOffline(metodoNombre) {
+      const form = document.getElementById('checkout-form');
+      if (!form.checkValidity()) {
+        alert('Por favor completa todos los campos requeridos antes de confirmar.');
+        form.reportValidity();
+        return;
+      }
+
+      const nombre = document.getElementById('cust-name').value.trim();
+      const telefono = document.getElementById('cust-phone').value.trim();
+      const esEnvio = document.querySelector('input[name="delivery-method"]:checked').value === 'envio';
+
+      let msg = `*NUEVO PEDIDO - CLEANER COMPUTER SHOP*\n\n`;
+      msg += `👤 *Cliente:* ${nombre}\n`;
+      msg += `📱 *Teléfono:* ${telefono}\n`;
+      msg += `🚚 *Método de entrega:* ${esEnvio ? 'Envío a Domicilio' : 'Recoger en Tienda'}\n`;
+
+      if (esEnvio) {
+        const direccion = document.getElementById('cust-address').value.trim();
+        const cp = document.getElementById('cust-zip').value.trim();
+        const colonia = document.getElementById('cust-city').value.trim();
+        const ref = document.getElementById('cust-ref').value.trim();
+        msg += `📍 *Dirección:* ${direccion}, Col. ${colonia}, C.P. ${cp}\n`;
+        if (ref) msg += `📝 *Referencias:* ${ref}\n`;
+      }
+
+      msg += `\n💳 *Método de Pago:* ${metodoNombre}\n\n`;
+      msg += `🛒 *Resumen del Pedido:*\n`;
+
+      cart.forEach((p, i) => {
+        msg += `${i + 1}. ${p.nombre} (x${p.qty}) - $${(p.precio * p.qty).toFixed(2)} MXN\n`;
+      });
+
+      msg += `\n*TOTAL A PAGAR: $${totalAmount.toFixed(2)} MXN*`;
+
+      const numWhatsApp = "5219511830003"; // Tu número de WhatsApp
+      const url = `https://wa.me/${numWhatsApp}?text=${encodeURIComponent(msg)}`;
+
+      // Vaciar carrito y abrir WhatsApp
+      localStorage.removeItem('ccs_cart');
+      window.open(url, '_blank');
+      window.location.href = 'catalogo.html';
+    }
+
+    // Eventos para botones fuera de PayPal
+    document.getElementById('btn-confirm-spei').addEventListener('click', () => {
+      procesarPedidoOffline('Transferencia Electrónica (SPEI)');
+    });
+
+    document.getElementById('btn-confirm-mp').addEventListener('click', () => {
+      procesarPedidoOffline('Mercado Pago');
+    });
+
+    document.getElementById('btn-confirm-oxxo').addEventListener('click', () => {
+      procesarPedidoOffline('Depósito en OXXO');
+    });
+
+    document.getElementById('btn-confirm-efectivo').addEventListener('click', () => {
+      procesarPedidoOffline('Efectivo en Mostrador');
+    });
+
+    // Control: ocultar 'Efectivo en tienda' si elige Envío a Domicilio
+    const optCashStore = document.getElementById('opt-cash-store');
+    deliveryRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (e.target.value === 'envio') {
+          optCashStore.classList.add('hidden');
+          const cashRadio = optCashStore.querySelector('input');
+          if (cashRadio.checked) switchPaymentMethod('paypal');
+        } else {
+          optCashStore.classList.remove('hidden');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

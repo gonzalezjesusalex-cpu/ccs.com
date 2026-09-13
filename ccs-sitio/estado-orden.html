@@ -1,0 +1,263 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Estado de Orden - Cleaner Computer Shop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="shared/tailwind-config.js"></script>
+<link href="shared/styles.css" rel="stylesheet">
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-body-md text-body-md">
+<header class="bg-surface border-b border-outline-variant">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 w-full max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary">Cleaner Computer Shop</div>
+<a href="login-cliente.html" class="border border-on-surface-variant text-on-surface px-4 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">logout</span> Salir
+</a>
+</div>
+</header>
+
+<main id="main-content" class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">
+<!-- El contenido se genera dinámicamente en JS según el folio en la URL -->
+</main>
+
+<footer class="bg-surface-container-highest mt-auto border-t border-outline-variant">
+<div class="px-margin-desktop py-8 max-w-container-max mx-auto text-center">
+<span class="font-label-md text-label-md font-black text-on-surface">© 2024 Cleaner Computer Shop. Technical Precision Guaranteed.</span>
+</div>
+</footer>
+
+<script src="shared/data.js"></script>
+<script>
+(function () {
+  const main = document.getElementById('main-content');
+  const params = new URLSearchParams(window.location.search);
+  const folio = params.get('folio');
+
+  if (!folio) {
+    window.location.href = 'login-cliente.html';
+    return;
+  }
+
+  const order = CCS.Orders.getById(folio);
+
+  if (!order) {
+    main.innerHTML = `
+      <div class="text-center py-20">
+        <span class="material-symbols-outlined text-outline" style="font-size:48px;">search_off</span>
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mt-4 mb-2">Orden no encontrada</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant mb-6">No existe ninguna orden con el folio "${CCS.util.escapeHtml(folio)}".</p>
+        <a href="login-cliente.html" class="text-primary font-label-md text-label-md">← Volver a intentar</a>
+      </div>`;
+    return;
+  }
+
+  const statusBadge = {
+    ingresado: { text: 'Ingresado', class: 'bg-surface-container-highest text-on-surface', icon: 'inbox' },
+    progreso: { text: 'En Progreso', class: 'bg-[#E0F2FE] text-[#0369A1]', icon: 'sync' },
+    pendiente: { text: 'Pendiente Refacción', class: 'bg-amber-100 text-amber-800', icon: 'schedule' },
+    listo: { text: 'Listo para Entrega', class: 'bg-emerald-100 text-emerald-800', icon: 'check_circle' }
+  }[order.status];
+
+// Definición de etapas del Stepper
+  const etapas = [
+    { key: 'ingresado', label: 'Recibido', icon: 'inbox' },
+    { key: 'progreso', label: 'En Diagnóstico', icon: 'search' },
+    { key: 'pendiente', label: 'Reparación / Refacción', icon: 'build' },
+    { key: 'listo', label: 'Listo para Entrega', icon: 'verified' }
+  ];
+
+  const etapaIndices = { ingresado: 0, progreso: 1, pendiente: 2, listo: 3 };
+  const indiceActual = etapaIndices[order.status] ?? 0;
+  const progresoPorcentaje = Math.round((indiceActual / (etapas.length - 1)) * 100);
+
+  const stepperHtml = `
+    <!-- Stepper Visual Horizontal -->
+    <div class="mb-8 px-2 sm:px-6">
+      <div class="relative flex items-center justify-between">
+        <!-- Barra de fondo -->
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 w-full bg-surface-variant rounded-full -z-0"></div>
+        <!-- Barra de progreso activa -->
+        <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 bg-primary rounded-full transition-all duration-500 -z-0" style="width: ${progresoPorcentaje}%;"></div>
+
+        ${etapas.map((etapa, idx) => {
+          const isDone = idx < indiceActual;
+          const isCurrent = idx === indiceActual;
+
+          let circleStyle = 'bg-surface-container-lowest border-2 border-outline-variant text-outline';
+          let labelStyle = 'text-on-surface-variant opacity-70';
+
+          if (isDone) {
+            circleStyle = 'bg-primary text-on-primary border-2 border-primary shadow-sm';
+            labelStyle = 'text-primary font-bold';
+          } else if (isCurrent) {
+            circleStyle = 'bg-surface-container-lowest border-2 border-primary text-primary ring-4 ring-primary/20 shadow-md';
+            labelStyle = 'text-primary font-extrabold';
+          }
+
+          return `
+            <div class="flex flex-col items-center relative z-10">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all ${circleStyle}">
+                <span class="material-symbols-outlined text-[20px]">${isDone ? 'check' : etapa.icon}</span>
+              </div>
+              <span class="text-[11px] sm:text-xs text-center mt-2 font-medium max-w-[80px] sm:max-w-[100px] leading-tight ${labelStyle}">
+                ${etapa.label}
+              </span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  // Historial detallado de actividades
+  const timeline = CCS.util.buildTimeline(order.status);
+  const estadoIcono = { completado: 'check', 'en-progreso': 'settings', pendiente: 'schedule' };
+  const estadoTexto = { completado: 'Completado', 'en-progreso': 'En curso', pendiente: 'Pendiente' };
+
+  const timelineHtml = timeline.map(step => {
+    const isCompleted = step.estado === 'completado';
+    const isActive = step.estado === 'en-progreso';
+    const circleClass = isCompleted ? 'bg-primary text-on-primary' : (isActive ? 'border-2 border-primary bg-surface-container-lowest text-primary' : 'border-2 border-outline-variant bg-surface-container-lowest text-outline-variant');
+    const cardClass = isActive ? 'border-primary' : 'border-outline-variant';
+    const cardOpacity = step.estado === 'pendiente' ? 'opacity-60' : '';
+    const spin = isActive ? 'animate-spin' : '';
+    return `
+      <div class="relative flex items-center gap-4">
+        <div class="flex items-center justify-center w-8 h-8 rounded-full ${circleClass} shadow shrink-0 z-10">
+          <span class="material-symbols-outlined text-[16px] ${spin}">${estadoIcono[step.estado]}</span>
+        </div>
+        <div class="flex-1 p-4 rounded-xl border ${cardClass} bg-surface-container-lowest shadow-soft ${cardOpacity}">
+          <h3 class="font-label-md text-label-md text-on-surface">${CCS.util.escapeHtml(step.titulo)}</h3>
+          <p class="font-code-sm text-code-sm text-on-surface-variant mt-1">${estadoTexto[step.estado]}</p>
+        </div>
+      </div>`;
+  }).join('');
+
+  const { piezasTotal, subtotal, total } = CCS.Orders.computeTotal(order);
+  const piezasHtml = (order.costos.piezas || []).map(p => `
+    <div class="flex justify-between items-center text-body-md font-body-md">
+      <span class="text-on-surface-variant">${CCS.util.escapeHtml(p.nombre)}${p.cantidad > 1 ? ' x' + p.cantidad : ''}</span>
+      <span class="text-on-surface">${CCS.util.formatMoney(p.costo)}</span>
+    </div>`).join('');
+
+  main.innerHTML = `
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Estado de Orden</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant mt-2">Folio: <span class="font-code-sm text-code-sm text-on-surface bg-surface-container-highest px-2 py-1 rounded">${order.id}</span></p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+      <div class="lg:col-span-2 space-y-gutter">
+
+        <!-- Tarjeta con Stepper visual -->
+        <div class="bg-surface-container-lowest rounded-xl border border-surface-variant p-6 shadow-soft">
+          <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2 border-b border-surface-variant pb-4 mb-6">
+            <span class="material-symbols-outlined text-primary">timeline</span> Estado de la Reparación
+          </h2>
+          ${stepperHtml}
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-xl border border-surface-variant p-6 shadow-soft">
+          <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2 border-b border-surface-variant pb-4 mb-4">
+            <span class="material-symbols-outlined text-primary">laptop_mac</span> Detalles del Equipo
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <span class="block font-label-md text-label-md text-on-surface-variant mb-1">Modelo</span>
+              <span class="block font-body-md text-body-md text-on-surface">${CCS.util.escapeHtml(order.equipo)}</span>
+            </div>
+            <div>
+              <span class="block font-label-md text-label-md text-on-surface-variant mb-1">Número de Serie</span>
+              <span class="block font-code-sm text-code-sm text-on-surface">${order.numeroSerie ? CCS.util.escapeHtml(order.numeroSerie) : 'No registrado'}</span>
+            </div>
+            <div class="sm:col-span-2">
+              <span class="block font-label-md text-label-md text-on-surface-variant mb-1">Problema Reportado</span>
+              <p class="font-body-md text-body-md text-on-surface">${CCS.util.escapeHtml(order.problema)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-xl border border-surface-variant p-6 shadow-soft bg-tech-tint">
+          <h2 class="font-headline-md text-headline-md text-on-surface flex items-center justify-between border-b border-surface-variant pb-4 mb-6 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">build</span> Progreso de Reparación
+            </div>
+            <span class="px-3 py-1 rounded ${statusBadge.class} font-label-md text-label-md flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">${statusBadge.icon}</span> ${statusBadge.text}
+            </span>
+          </h2>
+          <div class="space-y-6">${timelineHtml}</div>
+        </div>
+      </div>
+
+      <div class="space-y-gutter">
+        <div class="bg-surface-container-lowest rounded-xl border border-surface-variant p-6 shadow-soft">
+          <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2 border-b border-surface-variant pb-4 mb-4">
+            <span class="material-symbols-outlined text-primary">receipt_long</span> Resumen de Cargos
+          </h2>
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between items-center text-body-md font-body-md">
+              <span class="text-on-surface-variant">Diagnóstico</span>
+              <span class="text-on-surface">${CCS.util.formatMoney(order.costos.diagnostico)}</span>
+            </div>
+            ${piezasHtml}
+            <div class="flex justify-between items-center text-body-md font-body-md">
+              <span class="text-on-surface-variant">Mano de Obra</span>
+              <span class="text-on-surface">${CCS.util.formatMoney(order.costos.manoObra)}</span>
+            </div>
+            <div class="border-t border-surface-variant pt-3 flex justify-between items-center">
+              <span class="font-label-md text-label-md text-on-surface">Subtotal</span>
+              <span class="font-label-md text-label-md text-on-surface">${CCS.util.formatMoney(subtotal)}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="font-label-md text-label-md text-on-surface">Anticipo Pagado</span>
+              <span class="font-label-md text-label-md text-[#166534]">-${CCS.util.formatMoney(order.costos.anticipo)}</span>
+            </div>
+          </div>
+          <div class="bg-surface-container-highest p-4 rounded-lg flex justify-between items-center">
+            <span class="font-headline-md text-headline-md text-on-surface">Total a Liquidar</span>
+            <span class="font-headline-lg-mobile text-headline-lg-mobile text-primary">${CCS.util.formatMoney(total)}</span>
+          </div>
+          <p class="font-code-sm text-code-sm text-on-surface-variant mt-4 text-center">*El monto final puede variar si se detectan daños ocultos adicionales.</p>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-xl border border-surface-variant p-6 flex flex-col items-center text-center">
+          <span class="material-symbols-outlined text-[32px] text-tertiary mb-3">support_agent</span>
+          <h3 class="font-label-md text-label-md text-on-surface mb-2">¿Tienes dudas sobre tu orden?</h3>
+          <p class="font-code-sm text-code-sm text-on-surface-variant mb-4">Nuestro equipo de técnicos está listo para ayudarte con cualquier consulta sobre tu equipo.</p>
+        
+          <a href="https://wa.me/5219511830003?text=${encodeURIComponent('Hola, tengo dudas sobre el estatus de mi orden con Folio: ' + order.id)}" 
+             target="_blank" 
+             rel="noopener noreferrer" 
+             class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-label-md text-label-md px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">chat</span>
+            <span>Consultar por WhatsApp</span>
+          
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <a href="catalogo.html" class="mt-gutter block rounded-xl overflow-hidden relative group" style="background: linear-gradient(120deg, #0058bc, #4d5d73);">
+      <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px); background-size: 32px 32px;"></div>
+      <div class="relative px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-white" style="font-size:40px;">storefront</span>
+          <div>
+            <h3 class="font-headline-md text-headline-md text-white">¿Buscas actualizar tu equipo?</h3>
+            <p class="font-body-md text-body-md text-white/80 mt-1">Explora nuestra tienda en línea: laptops, componentes y accesorios técnicos verificados.</p>
+          </div>
+        </div>
+        <span class="shrink-0 bg-white text-primary font-label-md text-label-md px-6 py-3 rounded-lg flex items-center gap-2 group-hover:shadow-lg transition-shadow">
+          Ir a la Tienda
+          <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+        </span>
+      </div>
+    </a>`;
+})();
+</script>
+</body></html>

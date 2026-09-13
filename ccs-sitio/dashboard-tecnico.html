@@ -1,0 +1,949 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Dashboard Técnico - Cleaner Computer Shop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="shared/tailwind-config.js"></script>
+<link href="shared/styles.css" rel="stylesheet">
+<style>
+  .tab-btn { color: #414755; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #0058bc; border-bottom-color: #0058bc; font-weight: 700; }
+  .tab-panel.hidden-panel { display: none; }
+</style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col">
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 w-full max-w-container-max mx-auto">
+<span class="font-headline-md text-headline-md font-bold text-primary">Cleaner Computer Shop</span>
+<nav class="hidden md:flex gap-8">
+<a class="text-secondary font-medium font-body-md text-body-md hover:text-primary transition-colors" href="catalogo.html">Ventas</a>
+<a class="text-primary border-b-2 border-primary font-bold pb-1 font-body-md text-body-md" href="dashboard-tecnico.html">Soporte Técnico</a>
+</nav>
+<div class="flex items-center gap-3">
+<span id="tech-name" class="hidden sm:inline font-label-md text-label-md text-secondary"></span>
+<button id="logout-btn" class="border border-outline-variant text-on-surface font-label-md text-label-md px-4 py-2 rounded hover:bg-surface-variant transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined" style="font-size:18px;">logout</span> Salir
+</button>
+</div>
+</div>
+</header>
+
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8">
+<div class="mb-6 border-b border-outline-variant pb-4">
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Terminal Técnico</h1>
+<p class="font-body-md text-body-md text-secondary mt-1">Gestión de diagnósticos, reparaciones y catálogo de la tienda.</p>
+</div>
+
+<!-- Fila de Métricas Operativas (KPIs) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-soft flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-blue-50 text-primary flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined">sync</span>
+    </div>
+    <div>
+      <span class="block text-xs font-semibold text-secondary uppercase tracking-wider">En Taller</span>
+      <span id="kpi-en-proceso" class="text-xl font-bold text-on-surface">0</span>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-soft flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined">schedule</span>
+    </div>
+    <div>
+      <span class="block text-xs font-semibold text-secondary uppercase tracking-wider">Refacción</span>
+      <span id="kpi-refaccion" class="text-xl font-bold text-on-surface">0</span>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-soft flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+    <div>
+      <span class="block text-xs font-semibold text-secondary uppercase tracking-wider">Por Entregar</span>
+      <span id="kpi-listos" class="text-xl font-bold text-on-surface">0</span>
+    </div>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-soft flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined">payments</span>
+    </div>
+    <div>
+      <span class="block text-xs font-semibold text-secondary uppercase tracking-wider">Por Cobrar</span>
+      <span id="kpi-por-cobrar" class="text-xl font-bold text-primary">$0.00</span>
+    </div>
+  </div>
+</div>
+
+<!-- Subpestañas -->
+<div class="flex gap-6 border-b border-outline-variant mb-8 overflow-x-auto">
+<button data-tab="nuevo" class="tab-btn active font-label-md text-label-md pb-3 px-1 whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size:18px;">add_task</span> Nuevo Ingreso
+</button>
+<button data-tab="ordenes" class="tab-btn font-label-md text-label-md pb-3 px-1 whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size:18px;">assignment</span> Órdenes Registradas
+</button>
+<button data-tab="catalogo" class="tab-btn font-label-md text-label-md pb-3 px-1 whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size:18px;">storefront</span> Catálogo Tienda
+</button>
+<button data-tab="clientes" class="tab-btn font-label-md text-label-md pb-3 px-1 whitespace-nowrap flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size:18px;">groups</span> Clientes
+</button>
+</div>
+
+<!-- TAB 1: Nuevo Ingreso -->
+<section id="tab-nuevo" class="tab-panel">
+<div class="max-w-xl mx-auto bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-soft">
+<h2 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant pb-3 mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined">build_circle</span> Nuevo Ingreso de Equipo
+</h2>
+<form id="order-form" class="space-y-5">
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <!-- Campo Cliente con Dropdown de Búsqueda -->
+  <div class="flex flex-col gap-1 relative">
+    <div class="flex justify-between items-center">
+      <label for="input-cliente" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Nombre del Cliente *</label>
+      <span id="badge-cliente-tipo" class="text-[10px] font-bold text-secondary uppercase bg-surface-container-high px-1.5 py-0.5 rounded">Nuevo</span>
+    </div>
+    <div class="relative">
+      <input id="input-cliente" required type="text" autocomplete="off" placeholder="Buscar o escribir nombre..." class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary">
+      <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-sm pointer-events-none">search</span>
+    </div>
+    
+    <!-- Menú flotante de coincidencias -->
+    <div id="client-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl max-h-48 overflow-y-auto z-30 divide-y divide-outline-variant">
+      <!-- Opciones dinámicas -->
+    </div>
+  </div>
+
+  <!-- Campo Teléfono -->
+  <div class="flex flex-col gap-1">
+    <label for="input-telefono" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">WhatsApp / Teléfono *</label>
+    <input id="input-telefono" required type="tel" placeholder="Ej. 951 123 4567" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary">
+  </div>
+</div>
+
+<div class="flex flex-col gap-1">
+<label for="input-equipo" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Modelo / Equipo</label>
+<input id="input-equipo" required type="text" placeholder="Ej. Lenovo ThinkPad T14" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<div class="flex flex-col gap-1">
+<label for="input-serie" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Número de Serie (opcional)</label>
+<input id="input-serie" type="text" placeholder="Ej. C02GH34QML7H" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<div class="flex flex-col gap-1">
+<label for="input-problema" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Problema Reportado</label>
+<textarea id="input-problema" required rows="4" placeholder="Descripción detallada de la falla..." class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"></textarea>
+</div>
+<div class="flex flex-col gap-1">
+<label for="input-estatus" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Estatus Inicial</label>
+<select id="input-estatus" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+<option value="ingresado">Ingresado (Cola)</option>
+<option value="progreso">En Revisión Inmediata</option>
+</select>
+</div>
+
+<div class="flex flex-col gap-1">
+  <label for="input-anticipo" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Anticipo Inicial (MXN)</label>
+  <input id="input-anticipo" type="number" min="0" step="0.01" placeholder="0.00" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary">
+</div>
+
+<button type="submit" class="w-full mt-4 bg-primary text-on-primary font-label-md text-label-md py-3 rounded flex justify-center items-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-soft">
+<span class="material-symbols-outlined" style="font-size:18px;">add_task</span> Registrar Orden
+</button>
+</form>
+</div>
+</section>
+
+<!-- TAB 2: Órdenes Registradas -->
+<section id="tab-ordenes" class="tab-panel hidden-panel">
+<div class="flex gap-2 pb-2 mb-4 overflow-x-auto">
+<button data-filter="todos" data-label="Todos" class="filter-btn bg-surface-variant text-on-surface font-label-md text-label-md px-4 py-1.5 rounded-full border border-outline-variant whitespace-nowrap">Todos (0)</button>
+<button data-filter="progreso" data-label="En Proceso" class="filter-btn bg-surface-variant text-on-surface font-label-md text-label-md px-4 py-1.5 rounded-full border border-outline-variant whitespace-nowrap">En Proceso (0)</button>
+<button data-filter="pendiente" data-label="Pendiente Refacción" class="filter-btn bg-surface-variant text-on-surface font-label-md text-label-md px-4 py-1.5 rounded-full border border-outline-variant whitespace-nowrap">Pendiente Refacción (0)</button>
+<button data-filter="listo" data-label="Listos" class="filter-btn bg-surface-variant text-on-surface font-label-md text-label-md px-4 py-1.5 rounded-full border border-outline-variant whitespace-nowrap">Listos (0)</button>
+</div>
+<div id="orders-container" class="grid grid-cols-1 gap-4"></div>
+</section>
+
+<!-- TAB 3: Catálogo Tienda -->
+<section id="tab-catalogo" class="tab-panel hidden-panel">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<div class="col-span-1 lg:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-soft h-fit lg:sticky lg:top-24">
+<h2 id="product-form-title" class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant pb-3 mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined">storefront</span> Nuevo Producto
+</h2>
+<form id="product-form" class="space-y-5">
+<input type="hidden" id="product-edit-id" value="">
+<div class="flex flex-col gap-1">
+<label for="p-nombre" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Nombre del Producto</label>
+<input id="p-nombre" required type="text" placeholder="Ej. SSD NVMe M.2 2TB" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<div class="flex flex-col gap-1">
+<label for="p-categoria" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Categoría</label>
+<input id="p-categoria" required type="text" placeholder="Ej. Almacenamiento" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col gap-1">
+<label for="p-precio" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Precio (MXN)</label>
+<input id="p-precio" required type="number" min="0" step="0.01" placeholder="0.00" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<div class="flex flex-col gap-1">
+<label for="p-precio-original" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Precio Antes (opcional)</label>
+<input id="p-precio-original" type="number" min="0" step="0.01" placeholder="0.00" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label for="p-badge" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Etiqueta</label>
+<select id="p-badge" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+<option value="">Ninguna</option>
+<option value="NUEVO">NUEVO</option>
+<option value="OFERTA">OFERTA</option>
+</select>
+</div>
+<div class="border-t border-outline-variant pt-4">
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-3">Especificaciones (opcional)</p>
+<div class="grid grid-cols-2 gap-2 mb-2">
+<input id="p-spec1-label" type="text" placeholder="Ej. RAM" class="bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-sm">
+<input id="p-spec1-value" type="text" placeholder="Ej. 32GB DDR5" class="bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-sm">
+</div>
+<div class="grid grid-cols-2 gap-2 mb-2">
+<input id="p-spec2-label" type="text" placeholder="Etiqueta" class="bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-sm">
+<input id="p-spec2-value" type="text" placeholder="Valor" class="bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-sm">
+</div>
+<div class="grid grid-cols-2 gap-2">
+<input id="p-spec3-label" type="text" placeholder="Etiqueta" class="bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-sm">
+<input id="p-spec3-value" type="text" placeholder="Valor" class="bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-sm">
+</div>
+</div>
+<div class="flex gap-2 pt-2">
+<button type="submit" id="product-submit-btn" class="flex-1 bg-primary text-on-primary font-label-md text-label-md py-3 rounded flex justify-center items-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-soft">
+<span class="material-symbols-outlined" style="font-size:18px;">add_task</span> Agregar Producto
+</button>
+<button type="button" id="product-cancel-edit" class="hidden border border-outline-variant text-on-surface font-label-md text-label-md px-4 py-2 rounded hover:bg-surface-variant transition-colors">Cancelar</button>
+</div>
+</form>
+</div>
+
+<div class="col-span-1 lg:col-span-8">
+<div id="products-admin-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+</div>
+</div>
+</section>
+
+<!-- TAB 4: Directorio de Clientes -->
+<section id="tab-clientes" class="tab-panel hidden-panel">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-soft">
+    
+    <!-- Barra superior: Búsqueda y total -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-outline-variant pb-4 mb-6">
+      <div>
+        <h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">groups</span> Directorio de Clientes
+        </h2>
+        <p class="text-xs text-secondary mt-1">Historial de clientes registrados y equipos atendidos.</p>
+      </div>
+      <div class="relative w-full sm:w-72">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+        <input id="client-search-input" type="text" placeholder="Buscar por nombre o teléfono..." class="w-full bg-surface border border-outline-variant rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-primary">
+      </div>
+    </div>
+
+    <!-- Tabla de Clientes -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-outline-variant text-secondary text-xs uppercase tracking-wider bg-surface-container-low">
+            <th class="py-3 px-4">Cliente</th>
+            <th class="py-3 px-4">Teléfono / WhatsApp</th>
+            <th class="py-3 px-4 text-center">Órdenes</th>
+            <th class="py-3 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="clients-table-body" class="divide-y divide-outline-variant">
+          <!-- Filas dinámicas generadas en JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+</main>
+
+<footer class="bg-surface-container-highest border-t border-outline-variant mt-auto">
+<div class="px-margin-desktop py-8 max-w-container-max mx-auto text-center">
+<span class="font-body-md text-body-md text-secondary">© 2024 Cleaner Computer Shop. Technical Precision Guaranteed.</span>
+</div>
+</footer>
+
+<!-- Modal de Edición Integral de Orden -->
+<div id="edit-order-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    
+    <!-- Cabecera de la Modal -->
+    <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary text-2xl">edit_document</span>
+        <div>
+          <h3 class="font-headline-md text-lg font-bold text-on-surface">Editar Orden de Servicio</h3>
+          <span id="modal-order-id" class="font-mono text-xs text-secondary bg-surface-container-high px-2 py-0.5 rounded">ORD-000</span>
+        </div>
+      </div>
+      <button type="button" id="modal-close-btn" class="text-secondary hover:text-on-surface p-1 rounded-lg hover:bg-surface-variant transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Formulario / Cuerpo de la Modal con Scroll -->
+    <form id="edit-order-form" class="p-6 overflow-y-auto space-y-5">
+      <input type="hidden" id="edit-order-id-val">
+
+      <!-- Sección 1: Datos del Equipo y Cliente -->
+      <div>
+        <h4 class="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Información General</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Modelo / Equipo *</label>
+            <input id="modal-input-equipo" required type="text" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Número de Serie</label>
+            <input id="modal-input-serie" type="text" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Nombre del Cliente *</label>
+            <input id="modal-input-cliente" required type="text" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Estatus de Reparación</label>
+            <select id="modal-input-status" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+              <option value="ingresado">Ingresado</option>
+              <option value="progreso">En Proceso</option>
+              <option value="pendiente">Pendiente Refacción</option>
+              <option value="listo">Listo para Entrega</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 2: Falla Reportada -->
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-xs text-on-surface-variant uppercase">Problema Reportado *</label>
+        <textarea id="modal-input-problema" required rows="3" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"></textarea>
+      </div>
+
+<!-- Sección 3: Costos y Cobros -->
+      <div class="border-t border-outline-variant pt-4">
+        <h4 class="text-xs font-bold text-secondary uppercase tracking-wider mb-3">Costos y Desglose Financiero (MXN)</h4>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Diagnóstico</label>
+            <input id="modal-input-diagnostico" type="number" min="0" step="0.01" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Reparación</label>
+            <input id="modal-input-mano-obra" type="number" min="0" step="0.01" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Refacción</label>
+            <input id="modal-input-refaccion" type="number" min="0" step="0.01" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-label-md text-xs text-on-surface-variant uppercase">Anticipo</label>
+            <input id="modal-input-anticipo" type="number" min="0" step="0.01" class="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="border-t border-outline-variant pt-4 flex justify-end gap-3">
+        <button type="button" id="modal-cancel-btn" class="px-4 py-2 border border-outline-variant text-on-surface rounded-lg text-sm hover:bg-surface-variant transition-colors">
+          Cancelar
+        </button>
+        <button type="submit" class="px-5 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold flex items-center gap-1.5 shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-colors">
+          <span class="material-symbols-outlined text-[18px]">save</span>
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="shared/data.js"></script>
+<script>
+(function () {
+  CCS.Session.requireTecnico(); // redirige a login-tecnico.html si no hay sesión
+
+  document.getElementById('tech-name').textContent = 'Téc. ' + (CCS.Session.currentTecnico() || '');
+
+  document.getElementById('logout-btn').addEventListener('click', function () {
+    CCS.Session.logoutTecnico();
+    window.location.href = 'login-tecnico.html';
+  });
+
+  // ---------- Manejo de pestañas ----------
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabPanels = {
+    nuevo: document.getElementById('tab-nuevo'),
+    ordenes: document.getElementById('tab-ordenes'),
+    catalogo: document.getElementById('tab-catalogo'),
+    clientes: document.getElementById('tab-clientes')
+  };
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.keys(tabPanels).forEach(key => tabPanels[key].classList.add('hidden-panel'));
+      tabPanels[btn.dataset.tab].classList.remove('hidden-panel');
+    });
+  });
+
+  // ==================================================
+  // TAB 1: Nuevo Ingreso
+  // ==================================================
+  const orderForm = document.getElementById('order-form');
+
+  orderForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const clienteNombre = document.getElementById('input-cliente').value.trim();
+    const telefono = document.getElementById('input-telefono').value.trim();
+    const equipo = document.getElementById('input-equipo').value.trim();
+    const numeroSerie = document.getElementById('input-serie').value.trim();
+    const problema = document.getElementById('input-problema').value.trim();
+    const status = document.getElementById('input-estatus').value;
+    const anticipo = parseFloat(document.getElementById('input-anticipo').value) || 0;
+
+    if (!clienteNombre || !telefono || !equipo || !problema) {
+      CCS.util.toast('Completa cliente, teléfono, equipo y problema.');
+      return;
+    }
+
+    const order = CCS.Orders.add({ 
+      clienteNombre, 
+      clienteTelefono: telefono,
+      equipo, 
+      numeroSerie, 
+      problema, 
+      status,
+      costos: {
+        diagnostico: 150,
+        manoObra: 0,
+        anticipo: anticipo,
+        piezas: []
+      }
+    });
+    saveClient(clienteNombre, telefono),
+
+    orderForm.reset();
+    renderOrders();
+    CCS.util.toast(`Orden ${order.id} registrada.`);
+  });
+
+  // ==================================================
+  // TAB 2: Órdenes Registradas
+  // ==================================================
+  const statusLabels = {
+    ingresado: { text: 'Ingresado', badge: 'status-badge-none' },
+    progreso: { text: 'En Proceso', badge: 'status-badge-progress' },
+    pendiente: { text: 'Pendiente Refacción', badge: 'status-badge-pending' },
+    listo: { text: 'Listo para Entrega', badge: 'status-badge-ready' }
+  };
+
+  let activeFilter = 'todos';
+  const ordersContainer = document.getElementById('orders-container');
+  const filterButtons = document.querySelectorAll('.filter-btn');
+
+  function updateFilterCounts(orders) {
+    const counts = { todos: orders.length, ingresado: 0, progreso: 0, pendiente: 0, listo: 0 };
+    let totalPorCobrar = 0;
+
+    orders.forEach(o => {
+      if (counts[o.status] !== undefined) counts[o.status]++;
+      const { total } = CCS.Orders.computeTotal(o);
+      totalPorCobrar += Math.max(0, total);
+    });
+
+    filterButtons.forEach(btn => {
+      const f = btn.dataset.filter;
+      btn.textContent = `${btn.dataset.label} (${counts[f] ?? 0})`;
+      btn.classList.toggle('active', f === activeFilter);
+    });
+
+    // Actualizar tarjetas superiores de Métricas
+    document.getElementById('kpi-en-proceso').textContent = (counts.ingresado + counts.progreso);
+    document.getElementById('kpi-refaccion').textContent = counts.pendiente;
+    document.getElementById('kpi-listos').textContent = counts.listo;
+    document.getElementById('kpi-por-cobrar').textContent = CCS.util.formatMoney(totalPorCobrar);
+  }
+
+  function renderOrders() {
+    const orders = CCS.Orders.getAll();
+    updateFilterCounts(orders);
+    ordersContainer.innerHTML = '';
+
+    const filtered = activeFilter === 'todos' ? orders : orders.filter(o => o.status === activeFilter);
+
+    if (filtered.length === 0) {
+      ordersContainer.innerHTML = '<p class="font-body-md text-body-md text-secondary text-center py-10 border border-dashed border-outline-variant rounded-lg">No hay órdenes en esta categoría.</p>';
+      return;
+    }
+
+    filtered.slice().reverse().forEach(o => {
+      const badgeInfo = statusLabels[o.status] || statusLabels.ingresado;
+      const extra = o.status === 'progreso' ? ' bg-tech-tint' : (o.status === 'listo' ? ' border-l-4 border-l-emerald-500' : '');
+      const { total } = CCS.Orders.computeTotal(o);
+
+      const card = document.createElement('div');
+      card.className = 'bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-soft flex flex-col gap-4' + extra;
+      card.innerHTML = `
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-1 flex-wrap">
+              <span class="font-code-sm text-code-sm text-tertiary bg-surface-container-high px-2 py-0.5 rounded">${o.id}</span>
+              <span class="font-label-md text-label-md px-2 py-0.5 rounded ${badgeInfo.badge}">${badgeInfo.text}</span>
+            </div>
+            <h3 class="font-label-md text-label-md text-on-surface text-lg">${CCS.util.escapeHtml(o.equipo)}</h3>
+            <p class="font-code-sm text-code-sm text-secondary mt-1">Cliente: ${CCS.util.escapeHtml(o.cliente.nombre)}</p>
+            <p class="font-body-md text-body-md text-secondary mt-1">${CCS.util.escapeHtml(o.problema)}</p>
+            <p class="font-code-sm text-code-sm text-tertiary mt-2">Total actual: ${CCS.util.formatMoney(total)}</p>
+          </div>
+          <select data-id="${o.id}" data-action="status" class="border border-outline-variant rounded px-2 py-1.5 font-body-md text-sm bg-surface">
+            <option value="ingresado" ${o.status === 'ingresado' ? 'selected' : ''}>Ingresado</option>
+            <option value="progreso" ${o.status === 'progreso' ? 'selected' : ''}>En Proceso</option>
+            <option value="pendiente" ${o.status === 'pendiente' ? 'selected' : ''}>Pendiente Refacción</option>
+            <option value="listo" ${o.status === 'listo' ? 'selected' : ''}>Listo</option>
+          </select>
+        </div>
+        <div class="flex flex-wrap gap-2 pt-3 border-t border-outline-variant">
+          <button data-id="${o.id}" data-action="edit" class="border border-primary text-primary font-label-md text-label-md px-3 py-1.5 rounded hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:16px;">tune</span> Modificar
+          </button>
+          <a href="estado-orden.html?folio=${encodeURIComponent(o.id)}" target="_blank" class="border border-outline-variant text-on-surface font-label-md text-label-md px-3 py-1.5 rounded hover:bg-surface-variant transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:16px;">visibility</span> Vista Cliente
+          </a>
+          <button data-id="${o.id}" data-action="delete" class="border border-red-300 text-red-600 font-label-md text-label-md px-3 py-1.5 rounded hover:bg-red-50 transition-colors flex items-center gap-1 ml-auto">
+            <span class="material-symbols-outlined" style="font-size:16px;">delete</span> Eliminar
+          </button>
+        </div>`;
+      ordersContainer.appendChild(card);
+    });
+  }
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', function () {
+      activeFilter = btn.dataset.filter;
+      renderOrders();
+    });
+  });
+
+  ordersContainer.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const order = CCS.Orders.getById(id);
+    if (!order) return;
+
+    if (btn.dataset.action === 'delete') {
+      if (confirm(`¿Eliminar la orden ${id}?`)) {
+        CCS.Orders.delete(id);
+        renderOrders();
+        CCS.util.toast('Orden eliminada.');
+      }
+    }
+
+if (btn.dataset.action === 'edit' || btn.dataset.action === 'costos') {
+      abrirModalEdicion(order);
+    }
+  });
+
+  ordersContainer.addEventListener('change', function (e) {
+    const select = e.target.closest('select[data-action="status"]');
+    if (!select) return;
+    CCS.Orders.updateStatus(select.dataset.id, select.value);
+    renderOrders();
+    CCS.util.toast('Estatus actualizado.');
+  });
+
+// Controladores de la Modal de Edición de Órdenes
+  const editOrderModal = document.getElementById('edit-order-modal');
+  const editOrderForm = document.getElementById('edit-order-form');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+  function abrirModalEdicion(order) {
+    document.getElementById('edit-order-id-val').value = order.id;
+    document.getElementById('modal-order-id').textContent = order.id;
+    document.getElementById('modal-input-equipo').value = order.equipo || '';
+    document.getElementById('modal-input-serie').value = order.numeroSerie || '';
+    document.getElementById('modal-input-cliente').value = (order.cliente && order.cliente.nombre) || '';
+    document.getElementById('modal-input-status').value = order.status || 'ingresado';
+    document.getElementById('modal-input-problema').value = order.problema || '';
+    
+    // Costos
+    const totalPiezas = (order.costos && order.costos.piezas) 
+      ? order.costos.piezas.reduce((acc, p) => acc + (p.costo * (p.cantidad || 1)), 0) 
+      : 0;
+
+    document.getElementById('modal-input-diagnostico').value = (order.costos && order.costos.diagnostico) || 0;
+    document.getElementById('modal-input-mano-obra').value = (order.costos && order.costos.manoObra) || 0;
+    document.getElementById('modal-input-refaccion').value = totalPiezas;
+    document.getElementById('modal-input-anticipo').value = (order.costos && order.costos.anticipo) || 0;
+
+    editOrderModal.classList.remove('hidden');
+  }
+
+  function cerrarModalEdicion() {
+    editOrderModal.classList.add('hidden');
+    editOrderForm.reset();
+  }
+
+  modalCloseBtn.addEventListener('click', cerrarModalEdicion);
+  modalCancelBtn.addEventListener('click', cerrarModalEdicion);
+
+  editOrderForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = document.getElementById('edit-order-id-val').value;
+    const order = CCS.Orders.getById(id);
+    if (!order) return;
+
+    const equipo = document.getElementById('modal-input-equipo').value.trim();
+    const numeroSerie = document.getElementById('modal-input-serie').value.trim();
+    const clienteNombre = document.getElementById('modal-input-cliente').value.trim();
+    const status = document.getElementById('modal-input-status').value;
+    const problema = document.getElementById('modal-input-problema').value.trim();
+
+    const diagnostico = parseFloat(document.getElementById('modal-input-diagnostico').value) || 0;
+    const manoObra = parseFloat(document.getElementById('modal-input-mano-obra').value) || 0;
+    const refaccion = parseFloat(document.getElementById('modal-input-refaccion').value) || 0;
+    const anticipo = parseFloat(document.getElementById('modal-input-anticipo').value) || 0;
+
+    // Actualizar datos del equipo y cliente
+    CCS.Orders.update(id, {
+      equipo,
+      numeroSerie,
+      problema,
+      cliente: { ...order.cliente, nombre: clienteNombre }
+    });
+
+    // Actualizar estatus y costos
+    CCS.Orders.updateStatus(id, status);
+    CCS.Orders.updateCostos(id, { 
+      diagnostico, 
+      manoObra, 
+      anticipo,
+      piezas: refaccion > 0 ? [{ nombre: 'Refacción / Componentes', costo: refaccion, cantidad: 1 }] : []
+    });
+
+    cerrarModalEdicion();
+    renderOrders();
+    CCS.util.toast(`Orden ${id} actualizada con éxito.`);
+  });
+
+  // ==================================================
+  // TAB 3: Catálogo Tienda
+  // ==================================================
+  const productForm = document.getElementById('product-form');
+  const productEditId = document.getElementById('product-edit-id');
+  const productFormTitle = document.getElementById('product-form-title');
+  const productSubmitBtn = document.getElementById('product-submit-btn');
+  const productCancelEdit = document.getElementById('product-cancel-edit');
+  const productsAdminList = document.getElementById('products-admin-list');
+
+  function collectSpecs() {
+    const pairs = [
+      [document.getElementById('p-spec1-label').value.trim(), document.getElementById('p-spec1-value').value.trim()],
+      [document.getElementById('p-spec2-label').value.trim(), document.getElementById('p-spec2-value').value.trim()],
+      [document.getElementById('p-spec3-label').value.trim(), document.getElementById('p-spec3-value').value.trim()]
+    ];
+    return pairs.filter(([label, value]) => label && value).map(([label, value]) => ({ label, value }));
+  }
+
+  function fillSpecs(specs) {
+    const els = [
+      ['p-spec1-label', 'p-spec1-value'],
+      ['p-spec2-label', 'p-spec2-value'],
+      ['p-spec3-label', 'p-spec3-value']
+    ];
+    els.forEach(([labelId, valueId], i) => {
+      document.getElementById(labelId).value = (specs[i] && specs[i].label) || '';
+      document.getElementById(valueId).value = (specs[i] && specs[i].value) || '';
+    });
+  }
+
+  function resetProductForm() {
+    productForm.reset();
+    productEditId.value = '';
+    productFormTitle.innerHTML = '<span class="material-symbols-outlined">storefront</span> Nuevo Producto';
+    productSubmitBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">add_task</span> Agregar Producto';
+    productCancelEdit.classList.add('hidden');
+  }
+
+  productForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const nombre = document.getElementById('p-nombre').value.trim();
+    const categoria = document.getElementById('p-categoria').value.trim();
+    const precio = parseFloat(document.getElementById('p-precio').value);
+    const precioOriginalRaw = document.getElementById('p-precio-original').value;
+    const precioOriginal = precioOriginalRaw ? parseFloat(precioOriginalRaw) : null;
+    const badge = document.getElementById('p-badge').value || null;
+    const specs = collectSpecs();
+
+    if (!nombre || !categoria || isNaN(precio)) {
+      CCS.util.toast('Completa nombre, categoría y precio.');
+      return;
+    }
+
+    const editId = productEditId.value;
+    if (editId) {
+      CCS.Products.update(editId, { nombre, categoria, precio, precioOriginal, badge, specs });
+      CCS.util.toast('Producto actualizado.');
+    } else {
+      CCS.Products.add({ nombre, categoria, precio, precioOriginal, badge, specs });
+      CCS.util.toast('Producto agregado a la tienda.');
+    }
+    resetProductForm();
+    renderProductsAdmin();
+  });
+
+  productCancelEdit.addEventListener('click', resetProductForm);
+
+  function renderProductsAdmin() {
+    const products = CCS.Products.getAll();
+    productsAdminList.innerHTML = '';
+
+    if (products.length === 0) {
+      productsAdminList.innerHTML = '<p class="font-body-md text-body-md text-secondary text-center py-10 border border-dashed border-outline-variant rounded-lg col-span-full">Aún no hay productos en la tienda.</p>';
+      return;
+    }
+
+    products.forEach(p => {
+      const priceHtml = p.precioOriginal
+        ? `<span class="text-sm text-outline line-through mr-2">$${p.precioOriginal.toFixed(2)}</span><span class="font-label-md text-label-md text-primary font-bold">$${p.precio.toFixed(2)}</span>`
+        : `<span class="font-label-md text-label-md text-primary font-bold">$${p.precio.toFixed(2)}</span>`;
+      const badgeHtml = p.badge ? `<span class="font-code-sm text-code-sm px-2 py-0.5 rounded border border-outline-variant bg-surface-container-high">${p.badge}</span>` : '';
+
+      const card = document.createElement('div');
+      card.className = 'bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-soft flex flex-col gap-2';
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="font-code-sm text-code-sm text-tertiary bg-surface-container-high px-2 py-0.5 rounded">${p.id}</span>
+          ${badgeHtml}
+        </div>
+        <h3 class="font-label-md text-label-md text-on-surface">${CCS.util.escapeHtml(p.nombre)}</h3>
+        <p class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-wider">${CCS.util.escapeHtml(p.categoria)}</p>
+        <div>${priceHtml}</div>
+        <div class="flex gap-2 pt-2 border-t border-outline-variant mt-1">
+          <button data-id="${p.id}" data-action="edit-product" class="flex-1 border border-outline-variant text-on-surface font-label-md text-label-md px-3 py-1.5 rounded hover:bg-surface-variant transition-colors flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:16px;">edit</span> Editar
+          </button>
+          <button data-id="${p.id}" data-action="delete-product" class="flex-1 border border-red-300 text-red-600 font-label-md text-label-md px-3 py-1.5 rounded hover:bg-red-50 transition-colors flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:16px;">delete</span> Eliminar
+          </button>
+        </div>`;
+      productsAdminList.appendChild(card);
+    });
+  }
+
+  productsAdminList.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const product = CCS.Products.getById(id);
+    if (!product) return;
+
+    if (btn.dataset.action === 'delete-product') {
+      if (confirm(`¿Eliminar "${product.nombre}" de la tienda?`)) {
+        CCS.Products.delete(id);
+        renderProductsAdmin();
+        CCS.util.toast('Producto eliminado.');
+      }
+    }
+
+    if (btn.dataset.action === 'edit-product') {
+      document.getElementById('p-nombre').value = product.nombre;
+      document.getElementById('p-categoria').value = product.categoria;
+      document.getElementById('p-precio').value = product.precio;
+      document.getElementById('p-precio-original').value = product.precioOriginal || '';
+      document.getElementById('p-badge').value = product.badge || '';
+      fillSpecs(product.specs || []);
+      productEditId.value = product.id;
+      productFormTitle.innerHTML = '<span class="material-symbols-outlined">edit</span> Editar Producto';
+      productSubmitBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;">save</span> Guardar Cambios';
+      productCancelEdit.classList.remove('hidden');
+      document.getElementById('tab-catalogo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // ==================================================
+  // GESTIÓN Y DIRECTORIO DE CLIENTES
+  // ==================================================
+  const inputCliente = document.getElementById('input-cliente');
+  const inputTelefono = document.getElementById('input-telefono');
+  const badgeClienteTipo = document.getElementById('badge-cliente-tipo');
+  const clientSuggestions = document.getElementById('client-suggestions');
+  const clientSearchInput = document.getElementById('client-search-input');
+  const clientsTableBody = document.getElementById('clients-table-body');
+
+  // Obtener clientes del storage (o crearlos a partir de las órdenes iniciales)
+  function getClientsList() {
+    let clients = JSON.parse(localStorage.getItem('ccs_clients'));
+    if (!clients || clients.length === 0) {
+      const orders = CCS.Orders.getAll();
+      const map = {};
+      orders.forEach(o => {
+        if (o.cliente && o.cliente.nombre) {
+          const key = o.cliente.nombre.toLowerCase().trim();
+          if (!map[key]) {
+            map[key] = {
+              nombre: o.cliente.nombre.trim(),
+              telefono: o.cliente.telefono || '9511830003',
+              fechaRegistro: new Date().toLocaleDateString()
+            };
+          }
+        }
+      });
+      clients = Object.values(map);
+      localStorage.setItem('ccs_clients', JSON.stringify(clients));
+    }
+    return clients;
+  }
+
+  function saveClient(nombre, telefono) {
+    const clients = getClientsList();
+    const existingIndex = clients.findIndex(c => c.nombre.toLowerCase() === nombre.toLowerCase().trim());
+    if (existingIndex >= 0) {
+      clients[existingIndex].telefono = telefono;
+    } else {
+      clients.push({
+        nombre: nombre.trim(),
+        telefono: telefono.trim(),
+        fechaRegistro: new Date().toLocaleDateString()
+      });
+    }
+    localStorage.setItem('ccs_clients', JSON.stringify(clients));
+    renderClientsTable();
+  }
+
+  // Autocompletado en el formulario de Nuevo Ingreso
+  inputCliente.addEventListener('input', function () {
+    const val = this.value.trim().toLowerCase();
+    const clients = getClientsList();
+
+    if (!val) {
+      clientSuggestions.classList.add('hidden');
+      badgeClienteTipo.textContent = 'Nuevo';
+      badgeClienteTipo.className = 'text-[10px] font-bold text-secondary uppercase bg-surface-container-high px-1.5 py-0.5 rounded';
+      return;
+    }
+
+    const matches = clients.filter(c => c.nombre.toLowerCase().includes(val) || c.telefono.includes(val));
+
+    if (matches.length === 0) {
+      clientSuggestions.classList.add('hidden');
+      badgeClienteTipo.textContent = 'Nuevo';
+      badgeClienteTipo.className = 'text-[10px] font-bold text-emerald-700 uppercase bg-emerald-100 px-1.5 py-0.5 rounded';
+      return;
+    }
+
+    clientSuggestions.innerHTML = matches.map(c => `
+      <div class="client-item p-2.5 hover:bg-surface-container cursor-pointer flex justify-between items-center transition-colors" data-nombre="${CCS.util.escapeHtml(c.nombre)}" data-tel="${CCS.util.escapeHtml(c.telefono)}">
+        <div>
+          <span class="block font-medium text-sm text-on-surface">${CCS.util.escapeHtml(c.nombre)}</span>
+          <span class="block text-xs text-secondary">${CCS.util.escapeHtml(c.telefono)}</span>
+        </div>
+        <span class="material-symbols-outlined text-outline text-sm">north_west</span>
+      </div>
+    `).join('');
+
+    clientSuggestions.classList.remove('hidden');
+  });
+
+  clientSuggestions.addEventListener('click', function (e) {
+    const item = e.target.closest('.client-item');
+    if (!item) return;
+    inputCliente.value = item.dataset.nombre;
+    inputTelefono.value = item.dataset.tel;
+    clientSuggestions.classList.add('hidden');
+
+    badgeClienteTipo.textContent = 'Registrado';
+    badgeClienteTipo.className = 'text-[10px] font-bold text-blue-700 uppercase bg-blue-100 px-1.5 py-0.5 rounded';
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#input-cliente') && !e.target.closest('#client-suggestions')) {
+      clientSuggestions.classList.add('hidden');
+    }
+  });
+
+  // Renderizado de la Tabla del Directorio de Clientes
+  function renderClientsTable(filtro = '') {
+    const clients = getClientsList();
+    const orders = CCS.Orders.getAll();
+    clientsTableBody.innerHTML = '';
+
+    const filterLower = filtro.toLowerCase().trim();
+    const filtered = clients.filter(c => 
+      c.nombre.toLowerCase().includes(filterLower) || c.telefono.includes(filterLower)
+    );
+
+    if (filtered.length === 0) {
+      clientsTableBody.innerHTML = `
+        <tr>
+          <td colspan="4" class="py-8 text-center text-secondary">
+            No se encontraron clientes que coincidan con la búsqueda.
+          </td>
+        </tr>`;
+      return;
+    }
+
+    filtered.forEach(c => {
+      const clientOrders = orders.filter(o => o.cliente && o.cliente.nombre.toLowerCase().trim() === c.nombre.toLowerCase().trim());
+      const cleanPhone = c.telefono.replace(/\D/g, '');
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-surface-container/50 transition-colors';
+      tr.innerHTML = `
+        <td class="py-3 px-4 font-medium text-on-surface flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs shrink-0">
+            ${c.nombre.charAt(0).toUpperCase()}
+          </div>
+          <span>${CCS.util.escapeHtml(c.nombre)}</span>
+        </td>
+        <td class="py-3 px-4 text-on-surface-variant font-mono text-xs">
+          ${CCS.util.escapeHtml(c.telefono)}
+        </td>
+        <td class="py-3 px-4 text-center">
+          <span class="inline-block bg-surface-container-high text-on-surface font-code-sm text-xs px-2 py-0.5 rounded-full font-bold">
+            ${clientOrders.length} orden${clientOrders.length === 1 ? '' : 'es'}
+          </span>
+        </td>
+        <td class="py-3 px-4 text-right space-x-1">
+          <a href="https://wa.me/521${cleanPhone}?text=${encodeURIComponent('Hola ' + c.nombre + ', le saludamos de Cleaner Computer Shop:')}" 
+             target="_blank" 
+             class="inline-flex items-center gap-1 border border-emerald-300 text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 rounded text-xs font-semibold transition-colors">
+            <span class="material-symbols-outlined text-[14px]">chat</span> WhatsApp
+          </a>
+        </td>
+      `;
+      clientsTableBody.appendChild(tr);
+    });
+  }
+
+  clientSearchInput.addEventListener('input', function () {
+    renderClientsTable(this.value);
+  });
+
+  // ---------- Inicializar ----------
+  renderOrders();
+  renderProductsAdmin();
+  renderClientsTable();
+})();
+</script>
+</body></html>

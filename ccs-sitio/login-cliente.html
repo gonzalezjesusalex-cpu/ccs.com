@@ -1,0 +1,98 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Login de Cliente - Cleaner Computer Shop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="shared/tailwind-config.js"></script>
+<link href="shared/styles.css" rel="stylesheet">
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased">
+<main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop relative overflow-hidden">
+<div class="absolute inset-0 pointer-events-none z-0">
+<div class="absolute inset-0" style="background-image: linear-gradient(to right, #e0e3e5 1px, transparent 1px), linear-gradient(to bottom, #e0e3e5 1px, transparent 1px); background-size: 40px 40px; opacity: 0.2;"></div>
+</div>
+
+<div class="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl shadow-soft relative z-10 overflow-hidden">
+<div class="px-8 pt-10 pb-6 text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-surface-container-low border border-outline-variant rounded-full mb-6 mx-auto">
+<span class="material-symbols-outlined text-primary" style="font-size:32px;">terminal</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Cleaner Computer Shop</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Portal de Seguimiento de Servicios Técnicos</p>
+</div>
+
+<div class="px-8 pb-10">
+<form id="login-form" class="space-y-6">
+<div class="space-y-2">
+<label class="block font-label-md text-label-md text-on-surface" for="order_number">Número de Orden</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">tag</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="order_number" name="order_number" placeholder="Ej: ORD-00042" required type="text">
+</div>
+</div>
+<div class="space-y-2">
+<label class="block font-label-md text-label-md text-on-surface" for="client_name">Nombre del Cliente</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">person</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 border border-outline-variant rounded bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" id="client_name" name="client_name" placeholder="Nombre completo o razón social" required type="text">
+</div>
+</div>
+<p id="error-msg" class="hidden text-error font-body-md text-sm">No encontramos una orden con esos datos. Verifica el folio y el nombre.</p>
+<div class="pt-4">
+<button class="w-full flex justify-center items-center py-3 px-4 rounded bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm" type="submit">
+Consultar Estado
+<span class="material-symbols-outlined ml-2" style="font-size:18px;">arrow_forward</span>
+</button>
+</div>
+</form>
+
+<div class="mt-6 pt-4 border-t border-outline-variant text-center">
+<p class="font-code-sm text-code-sm text-outline">Demo local: prueba con folio <strong>ORD-00042</strong> y nombre <strong>Marco Aurelio Reyes</strong></p>
+</div>
+
+<div class="mt-8 pt-6 border-t border-surface-variant flex items-center justify-center text-center">
+<span class="material-symbols-outlined text-outline mr-2" style="font-size:16px;">verified_user</span>
+<p class="font-code-sm text-code-sm text-outline">Conexión segura. Acceso exclusivo para clientes registrados.</p>
+</div>
+
+<div class="mt-4 text-center">
+<a href="catalogo.html" class="font-body-md text-body-md text-secondary hover:text-primary">← Volver a la tienda</a>
+</div>
+</div>
+</div>
+</main>
+
+<script src="shared/data.js"></script>
+<script>
+  document.getElementById('login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const folio = document.getElementById('order_number').value.trim();
+    const nombre = document.getElementById('client_name').value.trim();
+    const errorMsg = document.getElementById('error-msg');
+
+    const order = CCS.Orders.findByFolioAndName(folio, nombre);
+    if (order) {
+      window.location.href = 'estado-orden.html?folio=' + encodeURIComponent(order.id);
+    } else {
+      errorMsg.classList.remove('hidden');
+    }
+  });
+
+  // Validación visual simple (igual a la versión original).
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('invalid', () => {
+      input.classList.add('border-error');
+    });
+    input.addEventListener('input', () => {
+      if (input.checkValidity()) input.classList.remove('border-error');
+      document.getElementById('error-msg').classList.add('hidden');
+    });
+  });
+</script>
+</body></html>

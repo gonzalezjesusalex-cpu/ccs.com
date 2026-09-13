@@ -1,0 +1,68 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Acceso Técnicos - Cleaner Computer Shop</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="shared/tailwind-config.js"></script>
+<link href="shared/styles.css" rel="stylesheet">
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased">
+<main class="flex-grow flex items-center justify-center p-margin-mobile md:p-margin-desktop">
+<div class="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl shadow-soft p-8">
+<div class="text-center mb-8">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-surface-container-low border border-outline-variant rounded-full mb-4">
+<span class="material-symbols-outlined text-primary" style="font-size:32px;">build_circle</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-surface mb-1">Portal Técnico</h1>
+<p class="font-body-md text-body-md text-secondary">Cleaner Computer Shop - Acceso interno</p>
+</div>
+
+<form id="login-form" class="space-y-5">
+<div class="flex flex-col gap-1">
+<label for="usuario" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Usuario</label>
+<input id="usuario" name="usuario" required type="text" autocomplete="username" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<div class="flex flex-col gap-1">
+<label for="password" class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Contraseña</label>
+<input id="password" name="password" required type="password" autocomplete="current-password" class="w-full bg-surface border border-outline-variant rounded px-3 py-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+</div>
+<p id="error-msg" class="hidden text-error font-body-md text-sm">Usuario o contraseña incorrectos.</p>
+<button type="submit" class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded flex justify-center items-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-soft">
+<span class="material-symbols-outlined" style="font-size:18px;">login</span>
+Ingresar
+</button>
+</form>
+
+<div class="mt-6 pt-4 border-t border-outline-variant text-center">
+<p class="font-code-sm text-code-sm text-outline">Demo local: usuario <strong>tecnico</strong> / contraseña <strong>1234</strong></p>
+</div>
+
+<div class="mt-4 text-center">
+<a href="catalogo.html" class="font-body-md text-body-md text-secondary hover:text-primary">← Volver a la tienda</a>
+</div>
+</div>
+</main>
+
+<script src="shared/data.js"></script>
+<script>
+  document.getElementById('login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const usuario = document.getElementById('usuario').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error-msg');
+
+    if (CCS.Session.loginTecnico(usuario, password)) {
+      window.location.href = 'dashboard-tecnico.html';
+    } else {
+      errorMsg.classList.remove('hidden');
+    }
+  });
+
+  // Si ya hay sesión activa, saltar directo al dashboard.
+  if (CCS.Session.isTecnicoLoggedIn()) {
+    window.location.href = 'dashboard-tecnico.html';
+  }
+</script>
+</body></html>

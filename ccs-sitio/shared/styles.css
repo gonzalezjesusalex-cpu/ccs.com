@@ -1,0 +1,33 @@
+/* Estilos personalizados compartidos - Cleaner Computer Shop */
+body { background-color: #f7f9fb; }
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.bg-tech-tint { background-color: #F0F7FF; }
+.text-tech-blue { color: #0058bc; }
+
+.status-badge-ready { background-color: #d1fae5; color: #065f46; }
+.status-badge-progress { background-color: #dbeafe; color: #1e40af; }
+.status-badge-pending { background-color: #fef3c7; color: #92400e; }
+.status-badge-none { background-color: #e0e3e5; color: #191c1e; }
+
+.shadow-soft { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+
+.filter-btn.active { background-color: #0058bc; color: #fff; border-color: #0058bc; }
+
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 100;
+  background: #191c1e; color: #fff; padding: 12px 20px; border-radius: 8px;
+  font-family: Inter, sans-serif; font-size: 14px; opacity: 0; transform: translateY(10px);
+  transition: opacity .25s ease, transform .25s ease; pointer-events: none;
+  max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(25,28,30,0.5); z-index: 90;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-overlay.hidden { display: none; }
